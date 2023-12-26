@@ -5,6 +5,24 @@ pub enum FindMode {
     AStar,
 }
 
+#[derive(PartialEq, Eq, Clone, Copy)]
+pub struct SearchUnit {
+    pub pos: (i32, i32),
+    pub cost: i32,
+}
+
+impl Ord for SearchUnit {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        other.cost.cmp(&self.cost)
+    }
+}
+
+impl PartialOrd for SearchUnit {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 pub fn check_map(map_vec: &Vec<Vec<i32>>) {
     let vec_len = map_vec[0].len();
     map_vec.iter().for_each(|v| {

@@ -1,28 +1,6 @@
 use std::{collections::{BinaryHeap, HashMap}, time::{Instant, Duration}};
 
-use super::common::{get_map_from_file, check_map, FindMode};
-
-pub fn printok() {
-    println!("ok");
-}
-
-#[derive(PartialEq, Eq, Clone, Copy)]
-pub struct SearchUnit {
-    pos: (i32, i32),
-    cost: i32,
-}
-
-impl Ord for SearchUnit {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.cost.cmp(&other.cost)
-    }
-}
-
-impl PartialOrd for SearchUnit {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
+use super::common::{get_map_from_file, check_map, FindMode, SearchUnit};
 
 pub struct PathFinder {
     grid_map: Vec<Vec<i32>>,
@@ -81,14 +59,15 @@ impl PathFinder {
             next_nodes.iter().for_each(|next_node| {
                 let updated_cost = visit_cost.get(&searching.pos).unwrap() + next_node.cost;
 
-                if !visit_cost.contains_key(&next_node.pos) || &updated_cost < visit_cost.get(&next_node.pos).unwrap() {
+                if !visit_cost.contains_key(&next_node.pos) || 
+                    &updated_cost < visit_cost.get(&next_node.pos).unwrap() {
                     match mode {
                         FindMode::Dijkstra => queue.push(SearchUnit {
                             ..*next_node
                         }),
                         FindMode::AStar => queue.push(SearchUnit {
-                            cost: next_node.cost + (next_node.pos.0 - self.end_pt.0).abs() + 
-                                (next_node.pos.1 - self.end_pt.1).abs(),
+                            cost: next_node.cost + ((next_node.pos.0 - self.end_pt.0).abs() + 
+                                (next_node.pos.1 - self.end_pt.1).abs()) / 5,
                             ..*next_node
                         }),
                     }
@@ -109,6 +88,7 @@ impl PathFinder {
             next_node = visited.get(next_node).unwrap();
         }
 
+        found_path.reverse();
         (found_path, *visit_cost.get(&self.end_pt).unwrap(), end_time - start_time)
     }
 }
