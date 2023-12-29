@@ -36,7 +36,7 @@ impl PathFinder {
         next_nodes
     }
 
-    pub fn search(&self, mode: FindMode) -> (Vec<(i32, i32)>, i32, Duration) {
+    pub fn search(&self, mode: FindMode) -> (Vec<(i32, i32)>, i32, Duration, (usize, usize, usize)) {
         check_map(&self.grid_map);
 
         let mut queue: BinaryHeap<SearchUnit> = BinaryHeap::new();
@@ -47,8 +47,13 @@ impl PathFinder {
         visited.insert(self.start_pt, (-1, -1));
         visit_cost.insert(self.start_pt, 0);
 
+        let (mut mlen_q, mut mlen_v, mut mlen_c) = (0usize, 0usize, 0usize);
         let start_time = Instant::now();
         while !queue.is_empty() {
+            mlen_q = mlen_q.max(queue.len());
+            mlen_v = mlen_v.max(visited.len());
+            mlen_c = mlen_c.max(visit_cost.len());
+
             let searching = queue.pop().unwrap();
             if searching.pos == self.end_pt {
                 queue.clear();
@@ -81,14 +86,22 @@ impl PathFinder {
 
         let mut found_path: Vec<(i32, i32)> = Vec::new();
         found_path.push(self.end_pt);
+        if !visited.contains_key(&self.end_pt) {
+            panic!("No path found.");
+        }
 
         let mut next_node = visited.get(&self.end_pt).unwrap();
         while *next_node != (-1, -1) {
             found_path.push(next_node.clone());
             next_node = visited.get(next_node).unwrap();
         }
-
         found_path.reverse();
-        (found_path, *visit_cost.get(&self.end_pt).unwrap(), end_time - start_time)
+
+        (
+            found_path, 
+            *visit_cost.get(&self.end_pt).unwrap(), 
+            end_time - start_time,
+            (mlen_q, mlen_v, mlen_c)
+        )
     }
 }
