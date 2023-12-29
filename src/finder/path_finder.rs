@@ -10,8 +10,11 @@ pub struct PathFinder {
 
 impl PathFinder {
     pub fn from_file(map_path: &str, start: (i32, i32), end: (i32, i32)) -> Self {
+        let g_map = get_map_from_file(map_path);
+        check_map(&g_map);
+
         Self {
-            grid_map: get_map_from_file(map_path),
+            grid_map: g_map,
             start_pt: start,
             end_pt: end,
         }
@@ -37,18 +40,17 @@ impl PathFinder {
     }
 
     pub fn search(&self, mode: FindMode) -> (Vec<(i32, i32)>, i32, Duration, (usize, usize, usize)) {
-        check_map(&self.grid_map);
-
         let mut queue: BinaryHeap<SearchUnit> = BinaryHeap::new();
-        queue.push(SearchUnit { pos: self.start_pt, cost: 0 });
-
         let mut visited: HashMap<(i32, i32), (i32, i32)> = HashMap::new();
         let mut visit_cost: HashMap<(i32, i32), i32> = HashMap::new();
+
+        queue.push(SearchUnit { pos: self.start_pt, cost: 0 });
         visited.insert(self.start_pt, (-1, -1));
         visit_cost.insert(self.start_pt, 0);
 
         let (mut mlen_q, mut mlen_v, mut mlen_c) = (0usize, 0usize, 0usize);
         let start_time = Instant::now();
+
         while !queue.is_empty() {
             mlen_q = mlen_q.max(queue.len());
             mlen_v = mlen_v.max(visited.len());
@@ -82,8 +84,8 @@ impl PathFinder {
                 }
             })
         }
-        let end_time = Instant::now();
 
+        let end_time = Instant::now();
         let mut found_path: Vec<(i32, i32)> = Vec::new();
         found_path.push(self.end_pt);
         if !visited.contains_key(&self.end_pt) {
@@ -95,8 +97,8 @@ impl PathFinder {
             found_path.push(next_node.clone());
             next_node = visited.get(next_node).unwrap();
         }
-        found_path.reverse();
 
+        found_path.reverse();
         (
             found_path, 
             *visit_cost.get(&self.end_pt).unwrap(), 
