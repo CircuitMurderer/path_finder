@@ -87,23 +87,27 @@ impl PathFinder {
 
         let end_time = Instant::now();
         let mut found_path: Vec<(i32, i32)> = Vec::new();
-        found_path.push(self.end_pt);
+        
         if !visited.contains_key(&self.end_pt) {
-            panic!("No path found.");
-        }
+            (
+                found_path,
+                -1,
+                end_time - start_time,
+                (mlen_q, mlen_v, mlen_c)
+            )
+        } else {
+            let mut next_node = &self.end_pt;
+            while *next_node != (-1, -1) {
+                found_path.insert(0, *next_node);
+                next_node = visited.get(next_node).unwrap();
+            }
 
-        let mut next_node = visited.get(&self.end_pt).unwrap();
-        while *next_node != (-1, -1) {
-            found_path.push(next_node.clone());
-            next_node = visited.get(next_node).unwrap();
+            (
+                found_path, 
+                *visit_cost.get(&self.end_pt).unwrap(), 
+                end_time - start_time,
+                (mlen_q, mlen_v, mlen_c)
+            )
         }
-
-        found_path.reverse();
-        (
-            found_path, 
-            *visit_cost.get(&self.end_pt).unwrap(), 
-            end_time - start_time,
-            (mlen_q, mlen_v, mlen_c)
-        )
     }
 }
